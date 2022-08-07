@@ -11,6 +11,7 @@ class SignUp(CreateView):
     success_url = reverse_lazy("login")
     template_name = "signup.html"
 
+
 @login_required
 def user_contact(request):
     if request.method == 'POST':
