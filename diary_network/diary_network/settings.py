@@ -11,6 +11,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+LOGIN_REDIRECT_URL='/'
 
 INSTALLED_APPS = [
     'posts',
