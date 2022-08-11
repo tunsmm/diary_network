@@ -6,6 +6,19 @@ from .forms import PostForm
 from .models import Group, Post, User
 
 
+def page_not_found(request, exception):
+    return render(
+        request, 
+        "misc/404.html", 
+        {"path": request.path}, 
+        status=404
+    )
+
+
+def server_error(request):
+    return render(request, "misc/500.html", status=500)
+
+
 @login_required
 def index(request):
     post_list = Post.objects.order_by('-pub_date').all()
