@@ -1,5 +1,5 @@
 from django.test import TestCase, Client
-from .models import Post, User
+from .models import Group, Post, User
 
 
 class PostsCasesTest(TestCase):
@@ -72,3 +72,42 @@ class PostEditCaseTest(TestCase):
          и его содержимое изменится на отдельной странице поста (post)"""
         response = self.client.get(f"/{self.user.username}/{self.post.pk}/")
         self.assertContains(response, self.new_text)
+
+
+class ImgUploadCaseTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+                        username="TestUser", email="mail@mail.ru", password="kthvjynjd"
+                )
+        self.client.login(username="TestUser", password="kthvjynjd")
+        self.group = Group.objects.create(title="TestGroup", slug="testgroup", description="TestDesc")
+        with open("D:\Data\Pictures\wp.jpg", "rb") as fp:
+            self.client.post("/new/", {"group": "1","text": "Test post", "image": fp})
+    
+    def test_img_index(self):
+        """При публикации поста с изображнием на главной странице есть тег <img>"""
+        response = self.client.get("")
+        self.assertContains(response, "<img")
+
+    def test_img_profile(self):
+        """При публикации поста с изображнием на странице профайла есть тег <img>"""
+        response = self.client.get("/TestUser/")
+        self.assertContains(response, "<img")
+
+    def test_img_view(self):
+        """При публикации поста с изображнием на отдельной странице поста (post) есть тег <img>"""
+        response = self.client.get("/TestUser/1/")
+        self.assertContains(response, "<img")
+
+    def test_img_group(self):
+        """При публикации поста с изображнием на странице группы есть тег <img>"""
+        response = self.client.get("/group/testgroup/")
+        self.assertContains(response, "<img")
+
+    def test_NoImg(self):
+        """Срабатывает защита от загрузки файлов не-графических форматов"""
+        with open("D:\Data\Pictures\sertificate.psd", "rb") as fp:
+            self.client.post("/new/", {"group": "1","text": "Test post", "image": fp})
+        response = self.client.get("/TestUser/")
+        self.assertEqual(response.context["posts_count"], 1) 
