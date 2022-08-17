@@ -29,3 +29,8 @@ class Comment(models.Model):
     created = models.DateTimeField("date commented", auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="author_comments")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="post_comments")
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="follower")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")

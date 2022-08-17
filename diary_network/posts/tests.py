@@ -86,3 +86,47 @@ class CommentCaseTests(TestCase):
         self.client.post ("/TestUser/1/comment/", {"text": "Test comment"})
         response = self.client.get("/TestUser/1/")
         self.assertNotContains(response, "Test comment")
+
+
+class followCaseTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+                        username="TestUser", email="mail@mail.ru", password="text2super3"
+                )
+        self.user2 = User.objects.create_user(
+                        username="TestUser2", email="mail2@mail.ru", password="text2super3"
+                )
+        self.user3 = User.objects.create_user(
+                        username="TestUser3", email="mail3@mail.ru", password="text2super3"
+                )
+        self.client.login(username="TestUser", password="text2super3")
+        self.post = Post.objects.create(text="Test post", author=self.user3)
+
+    def test_follow(self):
+        """Авторизованный пользователь может подписываться на других пользователей"""
+        self.client.get("/TestUser2/follow/")
+        response = self.client.get("/TestUser/")
+        self.assertEqual(response.context["follows"], 1)
+
+    def test_unfollow(self):
+        """Авторизованный пользователь может удалять других пользователей из подписок."""
+        self.client.get("/TestUser2/unfollow/")
+        response = self.client.get("/TestUser/")
+        self.assertEqual(response.context["follows"], 0)
+    
+
+    def test_news_lent(self):
+        """Новая запись пользователя появляется в ленте тех, кто на него подписан"""
+        self.client.get("/TestUser3/follow")
+        response = self.client.get("/follow/")
+        self.assertContains(response, "Test post")
+
+    def test_news_lent(self):
+        """Новая запись пользователя не появляется в ленте тех, кто не подписан на него"""
+        self.client.get("/TestUser3/follow")
+        response = self.client.get("/follow/")
+        self.client.logout()
+        self.client.login(username="TestUser2", password="text2super3")
+        response = self.client.get("/follow/")
+        self.assertNotContains(response, "Test post")

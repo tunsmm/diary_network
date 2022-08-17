@@ -5,9 +5,13 @@
 {% load cache %}
 
     {% cache 20 index_page %}
+
+    {% include "menu.html" with index=True %}
+
     {% for post in page %}
     {% include 'post_item.html' %}
     {% endfor %}
+
     {% endcache %}
 
     {% if page.has_other_pages %}
