@@ -1,6 +1,6 @@
-from django.forms import ModelForm
+from django.forms import ModelForm, Textarea
 
-from .models import Group, Post
+from .models import Comment, Group, Post
 
 
 class GroupForm(ModelForm):
@@ -21,4 +21,16 @@ class PostForm(ModelForm):
         labels = {
             'group': ('Группа'),
             'text': ('Текст'),
+        }
+
+
+class CommentForm(ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['text']
+        labels = {
+            'text': 'Комментарий'
+        }
+        widgets = {
+            'text': Textarea(attrs={'rows': 3}),
         }
