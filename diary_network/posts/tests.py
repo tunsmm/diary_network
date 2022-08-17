@@ -1,4 +1,5 @@
 from django.test import TestCase, Client
+
 from .models import Group, Post, User
 
 
@@ -47,23 +48,15 @@ class NewPostCaseTest(TestCase):
 class PostEditCaseTest(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(
-                        username="TestUser", email="mail@mail.ru", password="asdfgh12ter"
-                )
+        self.user = User.objects.create_user(username="TestUser", email="mail@mail.ru", password="asdfgh12ter")
         self.client.login(username="TestUser", password="asdfgh12ter")
-        self.post = Post.objects.create(text=("Test post"), author=self.user)
+        self.post = Post.objects.create(text=("Old Test"), author=self.user)
         self.new_text = "New Test"
         self.client.post(f"/{self.user.username}/{self.post.pk}/edit/", {"text": self.new_text})
-
-    def test_postedit_index(self):
-        """Авторизованный пользователь может отредактировать свой пост
-         и его содержимое изменится на главной странице сайта (index)"""
-        response = self.client.get("")
-        self.assertContains(response, self.new_text)
-
+        
     def test_postedit_profile(self):
-        """Авторизованный пользователь может отредактировать свой пост
-         и его содержимое изменится на персональной странице пользователя (profile)"""
+        """Авторизованный пользователь может отредактировать свой пост 
+        и его содержимое изменится на персональной странице пользователя (profile)"""
         response = self.client.get(f"/{self.user.username}/")
         self.assertContains(response, self.new_text)
     
@@ -74,40 +67,22 @@ class PostEditCaseTest(TestCase):
         self.assertContains(response, self.new_text)
 
 
-class ImgUploadCaseTest(TestCase):
+class CommentCaseTests(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(
-                        username="TestUser", email="mail@mail.ru", password="kthvjynjd"
-                )
-        self.client.login(username="TestUser", password="kthvjynjd")
-        self.group = Group.objects.create(title="TestGroup", slug="testgroup", description="TestDesc")
-        with open("D:\Data\Pictures\wp.jpg", "rb") as fp:
-            self.client.post("/new/", {"group": "1","text": "Test post", "image": fp})
-    
-    def test_img_index(self):
-        """При публикации поста с изображнием на главной странице есть тег <img>"""
-        response = self.client.get("")
-        self.assertContains(response, "<img")
+        self.user = User.objects.create_user(username="TestUser", email="mail@mail.ru", password="asdfgh12ter")
+        self.client.login(username="TestUser", password="asdfgh12ter")
+        self.post = Post.objects.create(text="Test post", author=self.user)
 
-    def test_img_profile(self):
-        """При публикации поста с изображнием на странице профайла есть тег <img>"""
-        response = self.client.get("/TestUser/")
-        self.assertContains(response, "<img")
-
-    def test_img_view(self):
-        """При публикации поста с изображнием на отдельной странице поста (post) есть тег <img>"""
+    def test_comment_authorized(self):
+        """Авторизированный пользователь может комментировать посты."""
+        self.client.post ("/TestUser/1/comment/", {"text": "Test comment"})
         response = self.client.get("/TestUser/1/")
-        self.assertContains(response, "<img")
+        self.assertContains(response, "Test comment")
 
-    def test_img_group(self):
-        """При публикации поста с изображнием на странице группы есть тег <img>"""
-        response = self.client.get("/group/testgroup/")
-        self.assertContains(response, "<img")
-
-    def test_NoImg(self):
-        """Срабатывает защита от загрузки файлов не-графических форматов"""
-        with open("D:\Data\Pictures\sertificate.psd", "rb") as fp:
-            self.client.post("/new/", {"group": "1","text": "Test post", "image": fp})
-        response = self.client.get("/TestUser/")
-        self.assertEqual(response.context["posts_count"], 1) 
+    def test_comment_notauthorized(self):
+        """Не авторизированный пользователь не может комментировать посты."""
+        self.client.logout()
+        self.client.post ("/TestUser/1/comment/", {"text": "Test comment"})
+        response = self.client.get("/TestUser/1/")
+        self.assertNotContains(response, "Test comment")
