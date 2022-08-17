@@ -7,14 +7,21 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'x!v3fsijr%@7!#4#lhui6_ji19v+hb)vsb+4!o_r!p^-ouc%v8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "[::1]",
     "testserver",
+    "*",
 ]
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
+CSRF_TRUSTED_ORIGINS = ['https://c8ad-176-100-125-252.ngrok.io']
 
 LOGIN_REDIRECT_URL='/'
 
@@ -28,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sorl.thumbnail',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -38,6 +46,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'diary_network.urls'
