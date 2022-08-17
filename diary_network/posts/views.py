@@ -2,8 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import PostForm
-from .models import Group, Post, User
+from .forms import CommentForm,  PostForm
+from .models import Comment, Group, Post, User
 
 
 def page_not_found(request, exception):
@@ -69,10 +69,14 @@ def post_view(request, username, post_id):
     post = get_object_or_404(Post, pk=post_id)
     post_list = Post.objects.filter(author = profile).order_by("-pub_date").all()
     posts_count = post_list.count()
+    form = CommentForm()
+    comment_list = Comment.objects.filter(post=post).order_by("-created").all()
     context = {
         "profile": profile, 
         "post": post,
-        "posts_count": posts_count, 
+        "posts_count": posts_count,
+        "form": form, 
+        "comment_list": comment_list,
     } 
     return render(request, 'post.html', context)
 
@@ -90,3 +94,24 @@ def post_edit(request, username, post_id):
         form.save()
         return redirect("post", username=request.user.username, post_id=post_id)
     return render(request, "post_new.html", {"form": form, "title": title, "btn_caption": btn_caption, "post": post})
+
+
+@login_required
+def comment_add(request, username, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    form = CommentForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        new_comment = form.save(commit=False)
+        new_comment.author = request.user
+        new_comment.post = post
+        new_comment.save()
+        return redirect("post", username=request.user.username, post_id=post_id)    
+    form = PostForm()
+
+
+@login_required
+def comment_delete(request, username, post_id, comment_id):
+    comment = get_object_or_404(Comment, pk=comment_id)
+    if request.user.username == comment.author.username:
+        comment.delete()
+    return redirect("post", username=username, post_id=post_id)  
