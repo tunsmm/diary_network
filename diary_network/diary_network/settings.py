@@ -59,6 +59,12 @@ TEMPLATES = [
     }
 ]
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+
 WSGI_APPLICATION = 'diary_network.wsgi.application'
 
 
